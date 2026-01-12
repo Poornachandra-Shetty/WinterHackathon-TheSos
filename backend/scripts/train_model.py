@@ -1,78 +1,38 @@
 import pandas as pd
 import joblib
-from pathlib import Path
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.linear_model import LogisticRegression
+import os
 
-# Load the training data from CSV file (path resolved relative to script file)
-print("Loading training data...")
-data_file = Path(__file__).resolve().parent.parent / 'data' / 'data.csv'
-print(f"Reading data from {data_file}")
-data = pd.read_csv(data_file)
+print("Creating synthetic training dataset...")
 
-# Display basic information about the dataset
-print(f"Dataset loaded: {data.shape[0]} samples, {data.shape[1]} columns")
-print(f"Column names: {list(data.columns)}")
-print(f"\nClass distribution:")
-print(data['label'].value_counts())
+# Create synthetic training data matching frontend inputs
+# Features: word_score, memory_score, reaction_time
+training_data = pd.DataFrame({
+    "word_score": [95, 88, 92, 85, 30, 25, 35, 28, 90, 75, 20, 40, 87, 78, 22, 38, 93, 82, 18, 45],
+    "memory_score": [6, 5, 7, 5, 2, 1, 2, 1, 6, 4, 1, 3, 5, 4, 1, 2, 7, 5, 1, 3],
+    "reaction_time": [250, 280, 230, 350, 1200, 1400, 1100, 1300, 200, 400, 1500, 900, 300, 420, 1450, 1000, 240, 380, 1550, 850]
+})
 
-# Separate features (X) and target labels (y)
-feature_columns = ['memory_score', 'reaction_time', 'errors', 'completion_time']
-X = data[feature_columns]
-y = data['label']
+# Binary labels: 0 = Low risk, 1 = High risk
+labels = [0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]
 
-# Split data into training and testing sets (80% train, 20% test)
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, 
-    test_size=0.2, 
-    random_state=42,
-    stratify=y  # Ensure balanced class distribution in train/test splits
-)
+print(f"Dataset created: {len(training_data)} samples")
+print(f"Features: {list(training_data.columns)}")
+print(f"Class distribution: {pd.Series(labels).value_counts().to_dict()}")
 
-print(f"\nTraining set: {X_train.shape[0]} samples")
-print(f"Testing set: {X_test.shape[0]} samples")
+# Initialize and train the LogisticRegression model
+print("\nTraining LogisticRegression model...")
+model = LogisticRegression(random_state=42, max_iter=1000)
+model.fit(training_data, labels)
 
-# Initialize the machine learning model
-# RandomForestClassifier is chosen for:
-# - High accuracy and robustness
-# - Explainability (feature importance)
-# - Good performance with small datasets
-model = RandomForestClassifier(
-    n_estimators=100,      # Number of trees in the forest
-    max_depth=10,          # Maximum depth of each tree
-    random_state=42,       # For reproducibility
-    n_jobs=-1              # Use all CPU cores for faster training
-)
+print("Model training complete!")
 
-# Train the model on the training data
-print("\nTraining the model...")
-model.fit(X_train, y_train)
+# Create models directory if it doesn't exist
+os.makedirs("models", exist_ok=True)
 
-# Evaluate the model on the test set
-print("\nEvaluating model performance...")
-y_pred = model.predict(X_test)
-accuracy = accuracy_score(y_test, y_pred)
+# Save the trained model
+model_path = "models/ai_model.pkl"
+joblib.dump(model, model_path)
 
-print(f"Accuracy: {accuracy * 100:.2f}%")
-print("\nClassification Report:")
-print(classification_report(y_test, y_pred, target_names=['Low Risk', 'High Risk']))
-
-print("\nConfusion Matrix:")
-print(confusion_matrix(y_test, y_pred))
-
-# Display feature importance
-feature_importance = pd.DataFrame({
-    'feature': feature_columns,
-    'importance': model.feature_importances_
-}).sort_values('importance', ascending=False)
-
-print("\nFeature Importance:")
-print(feature_importance)
-
-# Save the trained model to a file
-model_filename = 'ai_model.pkl'
-joblib.dump(model, model_filename)
-print(f"\nModel saved successfully as '{model_filename}'")
-print("Training complete!")
-
+print(f"\n✅ Model saved successfully to '{model_path}'")
+print("Training complete! Model is ready for inference.")
