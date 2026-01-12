@@ -1,0 +1,9 @@
+word_score
+memory_score
+reaction_time
+errors
+completion_time
+reaction_sec
+memory_norm
+word_norm
+error_rate
