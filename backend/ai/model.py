@@ -183,8 +183,17 @@ def predict_cognitive_risk_fallback(
         (memory_risk * 0.50) +     # 50% weight on memory
         (reaction_risk * 0.25)     # 25% weight on reaction time
     )
-    
-    confidence = 0.65  # Lower confidence for rule-based system
+    # Confidence based on consistency of inputs
+    word_norm = word_score / 100
+    memory_norm = memory_score / 9
+    reaction_norm = min(reaction_time / 1500, 1)
+
+    variance = (
+    abs(word_norm - memory_norm) +
+    abs(memory_norm - reaction_norm)
+)
+
+    confidence = round(max(0.45, min(0.85, 1 - variance / 2)), 2)
     
     return max(0, min(100, overall_risk)), confidence
 
