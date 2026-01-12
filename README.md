@@ -51,9 +51,7 @@ Navigate to the frontend folder, install dependencies, and start the web applica
 Access the application in your browser and run the cognitive and speech screening
 
 Team Members
-
-Name 1
-
-Name 2
-
-Name 3
+1. Shetty Poornachandra Jnanachandra
+2. Sunil Jayappa Lamani
+3. Shravan S Kotian
+4. S Rohith
